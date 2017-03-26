@@ -194,7 +194,6 @@ class scrape():
             file_to_write.write(','.join([str(ele) for ele in range(155*110)])+ ',Label' + '\n')
             for row in rows:
                 print(len(row))
-                break
                 file_to_write.write(','.join(row) + '\n')
 
 c = scrape()
