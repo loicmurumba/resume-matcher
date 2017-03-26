@@ -40,7 +40,9 @@ public class Home extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 5 && resultCode== RESULT_OK){
             Bitmap image = (Bitmap) data.getExtras().get("data");
-            shoePic.setImageBitmap(image);
+            Bitmap test = Bitmap.createScaledBitmap(image,155,110, true);
+            System.out.println(image.getWidth());
+            shoePic.setImageBitmap(test);
         }
     }
 }
