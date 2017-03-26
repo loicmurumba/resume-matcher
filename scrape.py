@@ -170,10 +170,9 @@ class scrape():
         files = [os.path.basename(f)
                  for f in os.listdir(picDir) if os.path.isfile(os.path.join(picDir, f))]
         count = 0
-        group_count = 0
         for filename in files:
             filenameCommon = filename.split('QQQ')[0]
-            if filenameCommon in picdict.keys():
+            if filenameCommon in picdict.values():
                 continue
             else:
                 count += 1
