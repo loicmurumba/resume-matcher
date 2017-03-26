@@ -112,13 +112,24 @@ class scrape():
             searchPage = driver.page_source
             soup = BeautifulSoup(searchPage)
             ImageLinks = [dict(ele.attrs).get('src') for ele in soup.find_all('img',{'class':'mimg'})]
-            for picUrl in ImageLinks[15:]:
+            for picUrl in ImageLinks[:15]:
+                if not picUrl:
+                    print("not-a-url")
+                    continue
                 picName = self.ff(shoe) + "QQQ" + str(random.randint(1000000,20000000))
-                r = requests.get(picUrl)
-                with open(os.path.join(picDir, picName),'wb') as file:
+                print(picUrl)
+                r = requests.get('http://bing.com/' + picUrl)
+                with open(os.path.join(picDir , picName) + '.jpg','wb') as file:
                     file.write(r.content)
                     file.close()
-                with open(os.path.join(picDir,picName), 'r+b') as f:
+                    try:
+                       with open(os.path.join(picDir, picName), 'r+b') as f:
+                           with Image.open(f) as image:
+                               pass
+                    except:
+                        print("failed to load recourse: not a jpeg.")
+                        continue
+                with open(os.path.join(picDir , picName), 'r+b') as f:
                     with Image.open(f) as image:
                         try:
                             cover = resizeimage.resize_cover(image, [155, 110])
@@ -190,11 +201,19 @@ class scrape():
             row.append(str(thisFilesNumber))
             rows.append(row)
         with open(os.path.join(csvDir, 'training.csv'),'w+') as file_to_write:
-            print(len([str(ele) for ele in range(155*110)])+1)
-            file_to_write.write(','.join([str(ele) for ele in range(155*110)])+ ',Label' + '\n')
+            print(len([str(ele) for ele in range(155*55)])+1)
+            file_to_write.write(','.join([str(ele) for ele in range(155*55 + 1)])+ ',Label' + '\n')
             for row in rows:
-                print(len(row))
-                file_to_write.write(','.join(row) + '\n')
+                odd = False
+                rowToWrite = ''
+                for entry in row:
+                    if not odd:
+                        rowToWrite = rowToWrite + "," + entry
+                        odd = True
+                    else:
+                        odd = False
+                print(len(rowToWrite.split(',')))
+                file_to_write.write(rowToWrite + '\n')
 
 c = scrape()
 # links = c.sneakerpedia_links(["http://www.sneakerpedia.com/search/sneakers?utf8=%E2%9C%93&keywords=NMD&commit=search",
