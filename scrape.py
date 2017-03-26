@@ -166,14 +166,19 @@ class scrape():
         # takes all files in the picDir, and creates a dictionary of pictures to shoe ({'shoe1':[1,2,3,4],...,})
         picdict = {}
         reversePicDict = {}
+        groupNumbering = {}
         files = [os.path.basename(f)
                  for f in os.listdir(picDir) if os.path.isfile(os.path.join(picDir, f))]
         count = 0
+        group_count = 0
         for filename in files:
-            filenameCommon = os.path.basename(filename)
-            if filename in picdict.keys():
-                picdict[filenameCommon].append(count)
-            reversePicDict[filename] = count
+            filenameCommon = filename.split('QQQ')[0]
+            if filenameCommon in picdict.keys():
+                continue
+            else:
+                count += 1
+                picdict[count] = filenameCommon
+                reversePicDict[filenameCommon] = count
         return picdict,reversePicDict
 
 
@@ -181,6 +186,7 @@ class scrape():
     def jpgToCsv(self):
         # takes all files in the picDir, and converts them into CSV
         picdict, reversePicDict = self.imgNametoPicNumber()
+        print(picdict,reversePicDict)
         try:
             os.mkdir(os.path.join(picDir,'CSV'))
         except:
@@ -193,7 +199,8 @@ class scrape():
         for file in files:
             curr += 1
             file = os.path.join(picDir,file)
-            thisFilesNumber = reversePicDict[os.path.basename(file)]
+            thisFilesNumber = reversePicDict[os.path.basename(file).split('QQQ')[0]]
+            print(thisFilesNumber)
             row = []
             print("file {} out of {}".format(curr, numberOfFiles))
             with Image.open(file) as file_to_read:
@@ -210,8 +217,8 @@ class scrape():
             row.append(str(thisFilesNumber))
             rows.append(row)
         with open(os.path.join(csvDir, 'training.csv'),'w+') as file_to_write:
-            print(len([str(ele) for ele in range(155*110)])+1)
-            file_to_write.write(','.join([str(ele) for ele in range(155*110 + 1)])+ ',Label' + '\n')
+            print(len([str(ele) for ele in range(75*55)])+1)
+            file_to_write.write(','.join([str(ele) for ele in range(75*55 + 1)])+ ',Label' + '\n')
             for row in rows:
                 # odd = False
                 rowToWrite = ''
