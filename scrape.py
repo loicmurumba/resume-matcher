@@ -6,6 +6,7 @@ import os
 import re
 from PIL import Image
 from selenium import webdriver
+import random
 
 import unicodedata
 
@@ -95,18 +96,40 @@ class scrape():
         print("Dropped {}/{} pictures".format(failedResize, totalPics))
         return shoeDictionary
 
-    def getBingPicLinks(self,bingSearch):
-        
+    # gets additional pictures from bing to suppliment ones we already have
+    def getBingPicLinks(self):
+        files = [os.path.basename(f)
+                 for f in os.listdir(picDir) if os.path.isfile(os.path.join(picDir, f))]
+        shoeNames = [str(ele).split('QQQ')[0] for ele in files]
         # before running a search, MAKE IT INTERNET (url) SAFE!
         base = "http://www.bing.com/images/search?q="
-        query = base + bingSearch.replace(' ', '+')
-        print(query)
-        driver = webdriver.Chrome()
-        driver.get(query)
-        searchPage = driver.page_source
-        soup = BeautifulSoup(searchPage)
-        ImageLinks = [dict(ele.attrs).get('src') for ele in soup.find_all('img',{'class':'mimg'})]
-        print(ImageLinks[0])
+        for shoe in shoeNames: # these are already safe, we got theme strait from the file names
+            time.sleep(1)
+            query = base + shoe.replace(' ', '+')
+            print(query)
+            driver = webdriver.Chrome()
+            driver.get(query)
+            searchPage = driver.page_source
+            soup = BeautifulSoup(searchPage)
+            ImageLinks = [dict(ele.attrs).get('src') for ele in soup.find_all('img',{'class':'mimg'})]
+            for picUrl in ImageLinks[15:]:
+                picName = self.ff(shoe) + "QQQ" + str(random.randint(1000000,20000000))
+                r = requests.get(picUrl)
+                with open(os.path.join(picDir, picName),'wb') as file:
+                    file.write(r.content)
+                    file.close()
+                with open(os.path.join(picDir,picName), 'r+b') as f:
+                    with Image.open(f) as image:
+                        try:
+                            cover = resizeimage.resize_cover(image, [155, 110])
+                        except:
+                            image.close()
+                            f.close()
+                            os.remove(os.path.join(picDir, picName)) # if we can't resize, we'll remove this pic.
+                            print("shoe resize failure: deleteing picture.")
+                cover.save(os.path.join(picDir,picName), image.format)
+            print(ImageLinks[0])
+
 
     # makes name usable as a file name
     def ff(self,value):
@@ -167,7 +190,11 @@ class scrape():
             row.append(str(thisFilesNumber))
             rows.append(row)
         with open(os.path.join(csvDir, 'training.csv'),'w+') as file_to_write:
+            print(len([str(ele) for ele in range(155*110)])+1)
+            file_to_write.write(','.join([str(ele) for ele in range(155*110)])+ ',Label' + '\n')
             for row in rows:
+                print(len(row))
+                break
                 file_to_write.write(','.join(row) + '\n')
 
 c = scrape()
@@ -177,7 +204,7 @@ c = scrape()
 #                       ])
 links1 = ['http://www.sneakerpedia.com/sneakers/30298', 'http://www.sneakerpedia.com/sneakers/5145', 'http://www.sneakerpedia.com/sneakers/7068', 'http://www.sneakerpedia.com/sneakers/30465', 'http://www.sneakerpedia.com/sneakers/30303', 'http://www.sneakerpedia.com/sneakers/30488', 'http://www.sneakerpedia.com/sneakers/29623', 'http://www.sneakerpedia.com/sneakers/29511', 'http://www.sneakerpedia.com/sneakers/5', 'http://www.sneakerpedia.com/sneakers/5839', 'http://www.sneakerpedia.com/sneakers/28164', 'http://www.sneakerpedia.com/sneakers/1399', 'http://www.sneakerpedia.com/sneakers/2749', 'http://www.sneakerpedia.com/sneakers/3847', 'http://www.sneakerpedia.com/sneakers/29936', 'http://www.sneakerpedia.com/sneakers/24', 'http://www.sneakerpedia.com/sneakers/382', 'http://www.sneakerpedia.com/sneakers/30486', 'http://www.sneakerpedia.com/sneakers/29625', 'http://www.sneakerpedia.com/sneakers/28916', 'http://www.sneakerpedia.com/sneakers/737', 'http://www.sneakerpedia.com/sneakers/9352', 'http://www.sneakerpedia.com/sneakers/3839', 'http://www.sneakerpedia.com/sneakers/30254', 'http://www.sneakerpedia.com/sneakers/67', 'http://www.sneakerpedia.com/sneakers/774', 'http://www.sneakerpedia.com/sneakers/30300', 'http://www.sneakerpedia.com/sneakers/30032', 'http://www.sneakerpedia.com/sneakers/1546', 'http://www.sneakerpedia.com/sneakers/2310', 'http://www.sneakerpedia.com/sneakers/30073', 'http://www.sneakerpedia.com/sneakers/29607', 'http://www.sneakerpedia.com/sneakers/29616', 'http://www.sneakerpedia.com/sneakers/772', 'http://www.sneakerpedia.com/sneakers/1551', 'http://www.sneakerpedia.com/sneakers/21', 'http://www.sneakerpedia.com/sneakers/30219', 'http://www.sneakerpedia.com/sneakers/30051', 'http://www.sneakerpedia.com/sneakers/30393', 'http://www.sneakerpedia.com/sneakers/4631', 'http://www.sneakerpedia.com/sneakers/7158', 'http://www.sneakerpedia.com/sneakers/30345', 'http://www.sneakerpedia.com/sneakers/30487', 'http://www.sneakerpedia.com/sneakers/29927', 'http://www.sneakerpedia.com/sneakers/30338', 'http://www.sneakerpedia.com/sneakers/30352', 'http://www.sneakerpedia.com/sneakers/29838', 'http://www.sneakerpedia.com/sneakers/969', 'http://www.sneakerpedia.com/sneakers/29040', 'http://www.sneakerpedia.com/sneakers/30464', 'http://www.sneakerpedia.com/sneakers/28392', 'http://www.sneakerpedia.com/sneakers/756', 'http://www.sneakerpedia.com/sneakers/1003', 'http://www.sneakerpedia.com/sneakers/4889', 'http://www.sneakerpedia.com/sneakers/2321', 'http://www.sneakerpedia.com/sneakers/30380', 'http://www.sneakerpedia.com/sneakers/30269', 'http://www.sneakerpedia.com/sneakers/28173', 'http://www.sneakerpedia.com/sneakers/7501', 'http://www.sneakerpedia.com/sneakers/30302', 'http://www.sneakerpedia.com/sneakers/148', 'http://www.sneakerpedia.com/sneakers/681', 'http://www.sneakerpedia.com/sneakers/28454', 'http://www.sneakerpedia.com/sneakers/30457', 'http://www.sneakerpedia.com/sneakers/29787', 'http://www.sneakerpedia.com/sneakers/4002', 'http://www.sneakerpedia.com/sneakers/1075', 'http://www.sneakerpedia.com/sneakers/30456', 'http://www.sneakerpedia.com/sneakers/28945', 'http://www.sneakerpedia.com/sneakers/86', 'http://www.sneakerpedia.com/sneakers/2335', 'http://www.sneakerpedia.com/sneakers/28700', 'http://www.sneakerpedia.com/sneakers/29923', 'http://www.sneakerpedia.com/sneakers/3831', 'http://www.sneakerpedia.com/sneakers/29902', 'http://www.sneakerpedia.com/sneakers/30299', 'http://www.sneakerpedia.com/sneakers/28219', 'http://www.sneakerpedia.com/sneakers/596', 'http://www.sneakerpedia.com/sneakers/4877', 'http://www.sneakerpedia.com/sneakers/28526', 'http://www.sneakerpedia.com/sneakers/30460', 'http://www.sneakerpedia.com/sneakers/113', 'http://www.sneakerpedia.com/sneakers/29691', 'http://www.sneakerpedia.com/sneakers/30358', 'http://www.sneakerpedia.com/sneakers/2016', 'http://www.sneakerpedia.com/sneakers/825', 'http://www.sneakerpedia.com/sneakers/28108', 'http://www.sneakerpedia.com/sneakers/651', 'http://www.sneakerpedia.com/sneakers/6652', 'http://www.sneakerpedia.com/sneakers/1547', 'http://www.sneakerpedia.com/sneakers/28734', 'http://www.sneakerpedia.com/sneakers/29605', 'http://www.sneakerpedia.com/sneakers/1434', 'http://www.sneakerpedia.com/sneakers/1991', 'http://www.sneakerpedia.com/sneakers/49', 'http://www.sneakerpedia.com/sneakers/30427', 'http://www.sneakerpedia.com/sneakers/15927', 'http://www.sneakerpedia.com/sneakers/212', 'http://www.sneakerpedia.com/sneakers/5125', 'http://www.sneakerpedia.com/sneakers/1548', 'http://www.sneakerpedia.com/sneakers/3564', 'http://www.sneakerpedia.com/sneakers/758', 'http://www.sneakerpedia.com/sneakers/28803', 'http://www.sneakerpedia.com/sneakers/30283', 'http://www.sneakerpedia.com/sneakers/274', 'http://www.sneakerpedia.com/sneakers/572', 'http://www.sneakerpedia.com/sneakers/1510', 'http://www.sneakerpedia.com/sneakers/5302', 'http://www.sneakerpedia.com/sneakers/29606', 'http://www.sneakerpedia.com/sneakers/29248', 'http://www.sneakerpedia.com/sneakers/58', 'http://www.sneakerpedia.com/sneakers/2977', 'http://www.sneakerpedia.com/sneakers/2613', 'http://www.sneakerpedia.com/sneakers/30304', 'http://www.sneakerpedia.com/sneakers/30426', 'http://www.sneakerpedia.com/sneakers/4440', 'http://www.sneakerpedia.com/sneakers/28228', 'http://www.sneakerpedia.com/sneakers/1004', 'http://www.sneakerpedia.com/sneakers/701', 'http://www.sneakerpedia.com/sneakers/30010', 'http://www.sneakerpedia.com/sneakers/4879', 'http://www.sneakerpedia.com/sneakers/30271', 'http://www.sneakerpedia.com/sneakers/28910', 'http://www.sneakerpedia.com/sneakers/6507', 'http://www.sneakerpedia.com/sneakers/6026', 'http://www.sneakerpedia.com/sneakers/28107', 'http://www.sneakerpedia.com/sneakers/1358', 'http://www.sneakerpedia.com/sneakers/913', 'http://www.sneakerpedia.com/sneakers/30045', 'http://www.sneakerpedia.com/sneakers/72', 'http://www.sneakerpedia.com/sneakers/122', 'http://www.sneakerpedia.com/sneakers/764', 'http://www.sneakerpedia.com/sneakers/444', 'http://www.sneakerpedia.com/sneakers/28740', 'http://www.sneakerpedia.com/sneakers/776', 'http://www.sneakerpedia.com/sneakers/210', 'http://www.sneakerpedia.com/sneakers/12', 'http://www.sneakerpedia.com/sneakers/1000', 'http://www.sneakerpedia.com/sneakers/29945', 'http://www.sneakerpedia.com/sneakers/30381', 'http://www.sneakerpedia.com/sneakers/28396', 'http://www.sneakerpedia.com/sneakers/5074', 'http://www.sneakerpedia.com/sneakers/2691', 'http://www.sneakerpedia.com/sneakers/177', 'http://www.sneakerpedia.com/sneakers/905', 'http://www.sneakerpedia.com/sneakers/152', 'http://www.sneakerpedia.com/sneakers/920', 'http://www.sneakerpedia.com/sneakers/2308', 'http://www.sneakerpedia.com/sneakers/30485', 'http://www.sneakerpedia.com/sneakers/377', 'http://www.sneakerpedia.com/sneakers/1320', 'http://www.sneakerpedia.com/sneakers/28227', 'http://www.sneakerpedia.com/sneakers/2938', 'http://www.sneakerpedia.com/sneakers/755', 'http://www.sneakerpedia.com/sneakers/740', 'http://www.sneakerpedia.com/sneakers/29939', 'http://www.sneakerpedia.com/sneakers/2028', 'http://www.sneakerpedia.com/sneakers/3256', 'http://www.sneakerpedia.com/sneakers/26', 'http://www.sneakerpedia.com/sneakers/29', 'http://www.sneakerpedia.com/sneakers/498', 'http://www.sneakerpedia.com/sneakers/4580', 'http://www.sneakerpedia.com/sneakers/4475', 'http://www.sneakerpedia.com/sneakers/2914', 'http://www.sneakerpedia.com/sneakers/626', 'http://www.sneakerpedia.com/sneakers/4308']
 
-c.getBingPicLinks('Ultra Boost 2.0 Shock Mint')
+c.jpgToCsv()
 
 
 
