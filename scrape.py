@@ -153,6 +153,15 @@ class scrape():
         value = str(re.sub('[-\s]+', '-', value))
         return value
 
+    def resizeImages(self):
+        files = [os.path.basename(f)
+                 for f in os.listdir(picDir) if os.path.isfile(os.path.join(picDir, f))]
+        for file in files:
+            with open(os.path.join(picDir, file), 'r+b') as f:
+                with Image.open(f) as image:
+                    cover = resizeimage.resize_cover(image, [75, 55])
+            cover.save(os.path.join(picDir, file), image.format)
+
     def imgNametoPicNumber(self):
         # takes all files in the picDir, and creates a dictionary of pictures to shoe ({'shoe1':[1,2,3,4],...,})
         picdict = {}
@@ -201,17 +210,17 @@ class scrape():
             row.append(str(thisFilesNumber))
             rows.append(row)
         with open(os.path.join(csvDir, 'training.csv'),'w+') as file_to_write:
-            print(len([str(ele) for ele in range(155*55)])+1)
-            file_to_write.write(','.join([str(ele) for ele in range(155*55 + 1)])+ ',Label' + '\n')
+            print(len([str(ele) for ele in range(155*110)])+1)
+            file_to_write.write(','.join([str(ele) for ele in range(155*110 + 1)])+ ',Label' + '\n')
             for row in rows:
-                odd = False
+                # odd = False
                 rowToWrite = ''
                 for entry in row:
-                    if not odd:
-                        rowToWrite = rowToWrite + "," + entry
-                        odd = True
-                    else:
-                        odd = False
+                    # if not odd:
+                    rowToWrite = rowToWrite + "," + entry
+                    #     odd = True
+                    # else:
+                    #     odd = False
                 print(len(rowToWrite.split(',')))
                 file_to_write.write(rowToWrite + '\n')
 
